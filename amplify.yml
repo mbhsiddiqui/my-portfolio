@@ -8,9 +8,12 @@ frontend:
       commands:
         - npm run build:ssr
   artifacts:
-    baseDirectory: dist
+    baseDirectory: .
     files:
-      - "**/*"
+      - "dist/**/*"
+      - "server.js"
+      - "package.json"
+      - "package-lock.json"
   cache:
     paths:
       - node_modules/**/*
