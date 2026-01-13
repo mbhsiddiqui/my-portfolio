@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "dev:ssr": "node server.js",
     "build:ssr": "tsc -b && vite build && vite build --ssr src/entry-server.tsx",
-    "preview:ssr": "NODE_ENV=production node server.js"
+    "preview:ssr": "NODE_ENV=production node server.js",
+    "start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
