@@ -191,7 +191,7 @@ function App() {
       icon: <Linkedin size={14} className="text-white/80" />,
       color: 'rgba(255,255,255,0.12)',
       href: 'https://www.linkedin.com/in/mbhsiddiqui/',
-      target: '_blank',
+      target: '_blank' as const,
       rel: 'noreferrer',
       customClass: 'w-[2.2em] h-[2.2em]'
     },
@@ -211,7 +211,7 @@ function App() {
       icon: <Linkedin size={14} className="text-black/70" />,
       color: 'rgba(255,255,255,0.2)',
       href: 'https://www.linkedin.com/in/mbhsiddiqui/',
-      target: '_blank',
+      target: '_blank' as const,
       rel: 'noreferrer',
       customClass: 'w-[2.2em] h-[2.2em]'
     },

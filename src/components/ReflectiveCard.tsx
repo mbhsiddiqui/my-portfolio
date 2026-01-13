@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { Fingerprint, User, Activity, Lock } from 'lucide-react';
 
 interface ReflectiveCardProps {

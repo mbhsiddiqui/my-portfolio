@@ -4,7 +4,9 @@ import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 
 // https://vite.dev/config/
-export default defineConfig(({ ssrBuild }) => ({
+export default defineConfig((env) => {
+  const isSsrBuild = 'ssrBuild' in env ? Boolean((env as { ssrBuild?: boolean }).ssrBuild) : false;
+  return {
   plugins: [
     react({
       babel: {
@@ -19,7 +21,7 @@ export default defineConfig(({ ssrBuild }) => ({
     },
   },
   build: {
-    outDir: ssrBuild ? 'dist/server' : 'dist/client',
-    ssrManifest: !ssrBuild
+    outDir: isSsrBuild ? 'dist/server' : 'dist/client',
+    ssrManifest: !isSsrBuild
   }
-}))
+}});
