@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Dark-only for now */
+:root {
+  --bg: #070b14;        /* page background behind the pillar */
+  --text: #e7ebf3;
+  --accent: #8fe3ff;
+  --accent-2: #6ad1ff;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+html {
+  scroll-padding-top: 96px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Respect users who prefer less motion (optional but nice) */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

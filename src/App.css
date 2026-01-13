@@ -1,0 +1,40 @@
+/* Full-screen background container for LightPillar */
+.lp-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;          /* put it behind everything */
+  pointer-events: none; /* let clicks go through */
+}
+
+.fade-up {
+  opacity: 0;
+  transform: translate3d(0, 24px, 0);
+  transition: opacity 0.95s ease, transform 0.95s ease;
+  transition-delay: 0.08s;
+  will-change: opacity, transform;
+}
+
+.fade-up.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.fade-left {
+  opacity: 0;
+  transform: translate3d(-24px, 0, 0);
+  transition: opacity 0.95s ease, transform 0.95s ease;
+  transition-delay: 0.08s;
+  will-change: opacity, transform;
+}
+
+.fade-left.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+@media (max-width: 768px) {
+  .fade-up,
+  .fade-left {
+    transition-duration: 0.85s;
+  }
+}
