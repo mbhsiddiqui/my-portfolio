@@ -3,17 +3,14 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci --include=dev
+        - npm ci
     build:
       commands:
-        - npm run build:ssr
+        - npm run build
   artifacts:
-    baseDirectory: .
+    baseDirectory: dist
     files:
-      - "dist/**/*"
-      - "server.js"
-      - "package.json"
-      - "package-lock.json"
+      - "**/*"
   cache:
     paths:
       - node_modules/**/*
