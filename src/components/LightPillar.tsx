@@ -69,7 +69,7 @@ const LightPillar: React.FC<LightPillarProps> = ({
       renderer = new THREE.WebGLRenderer({
         antialias: true,
         alpha: true,
-        powerPreference: 'low-power',
+        powerPreference: 'high-performance',
         precision: 'lowp',
         stencil: false,
         depth: false
@@ -81,7 +81,7 @@ const LightPillar: React.FC<LightPillarProps> = ({
     }
 
     renderer.setSize(width, height);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.25));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
     container.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -270,7 +270,7 @@ const LightPillar: React.FC<LightPillarProps> = ({
 
     // Animation loop with fixed timestep
     let lastTime = performance.now();
-    const targetFPS = 30;
+    const targetFPS = 60;
     const frameTime = 1000 / targetFPS;
 
     const animate = (currentTime: number) => {

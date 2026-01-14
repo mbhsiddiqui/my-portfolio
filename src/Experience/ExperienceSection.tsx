@@ -100,7 +100,7 @@ const ExperienceSection: React.FC = () => {
               <div className="space-y-6">
                 {workExperience.map(role => (
                   <div
-                    key={role.role}
+                    key={`${role.role}-${role.period}`}
                     className="rounded-3xl border border-white/10 bg-white/5 p-6 space-y-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">

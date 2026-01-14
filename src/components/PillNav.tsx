@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { gsap } from 'gsap';
+import { Moon, Sun } from 'lucide-react';
 
 export type PillNavItem = {
   label: string;
@@ -12,6 +13,8 @@ export interface PillNavProps {
   logo: string;
   logoAlt?: string;
   items: PillNavItem[];
+  logoHref?: string;
+  onLogoClick?: () => void;
   activeHref?: string;
   className?: string;
   ease?: string;
@@ -24,12 +27,16 @@ export interface PillNavProps {
   onItemClick?: (item: PillNavItem) => void;
   onMobileMenuClick?: () => void;
   initialLoadAnimation?: boolean;
+  isDarkMode?: boolean;
+  onToggleTheme?: () => void;
 }
 
 const PillNav: React.FC<PillNavProps> = ({
   logo,
   logoAlt = 'Logo',
   items,
+  logoHref,
+  onLogoClick,
   activeHref,
   className = '',
   ease = 'power2.out',
@@ -41,7 +48,9 @@ const PillNav: React.FC<PillNavProps> = ({
   dimmed = false,
   onItemClick,
   onMobileMenuClick,
-  initialLoadAnimation = true
+  initialLoadAnimation = true,
+  isDarkMode = true,
+  onToggleTheme
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -54,6 +63,7 @@ const PillNav: React.FC<PillNavProps> = ({
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const navItemsRef = useRef<HTMLDivElement | null>(null);
   const logoRef = useRef<HTMLAnchorElement | HTMLElement | null>(null);
+  const [isThemeAnimating, setIsThemeAnimating] = useState(false);
 
   useEffect(() => {
     const layout = () => {
@@ -248,6 +258,18 @@ const PillNav: React.FC<PillNavProps> = ({
     }
   };
 
+  const handleThemeToggle = () => {
+    if (isThemeAnimating) return;
+    if (isMobileMenuOpen) {
+      closeMobileMenu();
+    }
+    setIsThemeAnimating(true);
+    window.setTimeout(() => {
+      onToggleTheme?.();
+    }, 160);
+    window.setTimeout(() => setIsThemeAnimating(false), 360);
+  };
+
   useEffect(() => {
     if (!isMobileMenuOpen) return;
 
@@ -315,6 +337,16 @@ const PillNav: React.FC<PillNavProps> = ({
 
   const isHashLink = (href: string) => href.startsWith('#');
 
+  const handleLogoClick = () => {
+    if (onLogoClick) {
+      onLogoClick();
+      return;
+    }
+    if (logoHref && onItemClick && logoHref.startsWith('#')) {
+      onItemClick({ label: 'Logo', href: logoHref });
+    }
+  };
+
   return (
     <div
       className={`fixed top-4 left-0 right-0 z-[1000] flex justify-center transition-opacity duration-300 ${
@@ -326,45 +358,45 @@ const PillNav: React.FC<PillNavProps> = ({
         aria-label="Primary"
         style={cssVars}
       >
-        {isRouterLink(items?.[0]?.href) ? (
+        {logoHref && isRouterLink(logoHref) ? (
           <Link
-            to={items[0].href}
+            to={logoHref}
             aria-label="Home"
             onMouseEnter={handleLogoEnter}
             role="menuitem"
             ref={el => {
               logoRef.current = el;
             }}
-            className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden"
+            className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden pill-logo-glass"
             style={{
               width: 'var(--nav-h)',
               height: 'var(--nav-h)',
-              background: 'var(--base, #000)',
+              background: 'rgba(255,255,255,0.18)',
               backdropFilter: 'blur(12px) saturate(1.2)',
               WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-              border: '1px solid rgba(255,255,255,0.35)',
+              border: 'none',
               ...initialRevealStyle
             }}
           >
             <img src={logo} alt={logoAlt} ref={logoImgRef} className="w-full h-full object-cover block" />
           </Link>
-        ) : isHashLink(items?.[0]?.href || '') && onItemClick ? (
+        ) : (logoHref || '').startsWith('#') ? (
           <button
             type="button"
             aria-label="Home"
             onMouseEnter={handleLogoEnter}
-            onClick={() => onItemClick(items[0])}
+            onClick={handleLogoClick}
             ref={el => {
               logoRef.current = el;
             }}
-            className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden"
+            className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden pill-logo-glass"
             style={{
               width: 'var(--nav-h)',
               height: 'var(--nav-h)',
-              background: 'var(--base, #000)',
+              background: 'rgba(255,255,255,0.18)',
               backdropFilter: 'blur(12px) saturate(1.2)',
               WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-              border: '1px solid rgba(255,255,255,0.35)',
+              border: 'none',
               ...initialRevealStyle
             }}
           >
@@ -372,20 +404,20 @@ const PillNav: React.FC<PillNavProps> = ({
           </button>
         ) : (
           <a
-            href={items?.[0]?.href || '#'}
+            href={logoHref || '#'}
             aria-label="Home"
             onMouseEnter={handleLogoEnter}
             ref={el => {
               logoRef.current = el;
             }}
-            className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden"
+            className="rounded-full p-2 inline-flex items-center justify-center overflow-hidden pill-logo-glass"
             style={{
               width: 'var(--nav-h)',
               height: 'var(--nav-h)',
-              background: 'var(--base, #000)',
+              background: 'rgba(255,255,255,0.18)',
               backdropFilter: 'blur(12px) saturate(1.2)',
               WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
-              border: '1px solid rgba(255,255,255,0.35)',
+              border: 'none',
               ...initialRevealStyle
             }}
           >
@@ -395,13 +427,9 @@ const PillNav: React.FC<PillNavProps> = ({
 
         <div
           ref={navItemsRef}
-          className="relative items-center rounded-full hidden md:flex ml-2"
+          className="relative items-center rounded-full hidden md:flex ml-2 pill-nav-surface"
           style={{
             height: 'var(--nav-h)',
-            background: 'rgba(10,14,24,0.45)',
-            backdropFilter: 'blur(14px) saturate(1.2)',
-            WebkitBackdropFilter: 'blur(14px) saturate(1.2)',
-            border: '1px solid rgba(255,255,255,0.3)',
             ...initialRevealStyle
           }}
         >
@@ -513,12 +541,37 @@ const PillNav: React.FC<PillNavProps> = ({
           </ul>
         </div>
 
+        {onToggleTheme ? (
+          <button
+            type="button"
+            aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            onClick={handleThemeToggle}
+            className={`hidden md:inline-flex items-center justify-center rounded-full ml-3 theme-toggle ${
+              isThemeAnimating ? 'theme-toggle-animating' : ''
+            } ${initialLoadAnimation ? 'theme-toggle-intro' : ''}`}
+            style={{
+              width: 'var(--nav-h)',
+              height: 'var(--nav-h)',
+              background: 'rgba(255,255,255,0.18)',
+              border: 'none',
+              backdropFilter: 'blur(12px) saturate(1.2)',
+              WebkitBackdropFilter: 'blur(12px) saturate(1.2)',
+              ['--toggle-rotate' as string]: isDarkMode ? '0deg' : '180deg'
+            }}
+          >
+            <span className="theme-toggle-glyph">
+              <Sun size={16} className="theme-toggle-icon theme-toggle-icon--sun" />
+              <Moon size={16} className="theme-toggle-icon theme-toggle-icon--moon" />
+            </span>
+          </button>
+        ) : null}
+
         <button
           ref={hamburgerRef}
           onClick={toggleMobileMenu}
           aria-label="Toggle menu"
           aria-expanded={isMobileMenuOpen}
-          className="md:hidden rounded-full border-0 flex flex-col items-center justify-center gap-1 cursor-pointer p-0 relative"
+          className="md:hidden rounded-full border-0 flex flex-col items-center justify-center gap-1 cursor-pointer p-0 relative pill-nav-toggle"
           style={{
             width: 'var(--nav-h)',
             height: 'var(--nav-h)',
@@ -547,7 +600,10 @@ const PillNav: React.FC<PillNavProps> = ({
           background: 'rgba(10,14,24,0.6)',
           border: '1px solid rgba(255,255,255,0.35)',
           backdropFilter: 'blur(16px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(16px) saturate(1.2)'
+          WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+          visibility: isMobileMenuOpen ? 'visible' : 'hidden',
+          opacity: isMobileMenuOpen ? 1 : 0,
+          pointerEvents: isMobileMenuOpen ? 'auto' : 'none'
         }}
       >
         <ul className="list-none m-0 p-[3px] flex flex-col gap-[3px]">
@@ -612,6 +668,28 @@ const PillNav: React.FC<PillNavProps> = ({
               </li>
             );
           })}
+          {onToggleTheme ? (
+            <li>
+              <button
+                type="button"
+                className={`block py-3 px-4 text-[16px] font-medium rounded-[50px] transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)] w-full text-left flex items-center gap-3 theme-toggle ${
+                  isThemeAnimating ? 'theme-toggle-animating' : ''
+                }`}
+                style={{
+                  background: 'rgba(255,255,255,0.12)',
+                  color: 'var(--pill-text, #fff)',
+                  ['--toggle-rotate' as string]: isDarkMode ? '0deg' : '180deg'
+                }}
+                onClick={handleThemeToggle}
+              >
+                <span className="theme-toggle-glyph">
+                  <Sun size={16} className="theme-toggle-icon theme-toggle-icon--sun" />
+                  <Moon size={16} className="theme-toggle-icon theme-toggle-icon--moon" />
+                </span>
+                <span>{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
+              </button>
+            </li>
+          ) : null}
         </ul>
       </div>
     </div>

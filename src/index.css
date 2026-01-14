@@ -5,9 +5,60 @@
 /* Dark-only for now */
 :root {
   --bg: #070b14;        /* page background behind the pillar */
-  --text: #e7ebf3;
+  --text: #F8F8FF;
   --accent: #8fe3ff;
   --accent-2: #6ad1ff;
+}
+
+.theme-dark .text-white,
+.theme-dark .text-white\/80,
+.theme-dark .text-white\/70,
+.theme-dark .text-white\/60,
+.theme-dark .text-white\/50,
+.theme-dark .text-white\/40,
+.theme-dark .text-white\/30,
+.theme-dark .text-white\/20,
+.theme-dark .text-white\/10 {
+  color: #F8F8FF !important;
+}
+
+.theme-dark .bg-white\/30 {
+  background-color: rgba(248, 248, 255, 0.3) !important;
+}
+
+.theme-dark .bg-white\/20 {
+  background-color: rgba(248, 248, 255, 0.2) !important;
+}
+
+.theme-dark .bg-white\/10 {
+  background-color: rgba(248, 248, 255, 0.1) !important;
+}
+
+.theme-dark .bg-white\/5 {
+  background-color: rgba(248, 248, 255, 0.05) !important;
+}
+
+.theme-dark .border-white\/40 {
+  border-color: rgba(248, 248, 255, 0.4) !important;
+}
+
+.theme-dark .border-white\/30 {
+  border-color: rgba(248, 248, 255, 0.3) !important;
+}
+
+.theme-dark .border-white\/20 {
+  border-color: rgba(248, 248, 255, 0.2) !important;
+}
+
+.theme-dark .border-white\/10 {
+  border-color: rgba(248, 248, 255, 0.1) !important;
+}
+
+.theme-light {
+  --bg: #F8F8FF;
+  --text: #0E0D15;
+  --accent: #2b5bff;
+  --accent-2: #4b7bff;
 }
 
 html, body, #root {
@@ -22,6 +73,58 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.theme-light .text-white,
+.theme-light .text-white\/70,
+.theme-light .text-white\/60,
+.theme-light .text-white\/80,
+.theme-light .text-white\/30,
+.theme-light .text-white\/20,
+.theme-light .text-white\/10,
+.theme-light .text-white\/50,
+.theme-light .text-white\/40 {
+  color: #0E0D15 !important;
+}
+
+.theme-light .text-black\/70 {
+  color: #0E0D15 !important;
+}
+
+.theme-light .text-black {
+  color: #0E0D15 !important;
+}
+
+.theme-light .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+.theme-light .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+.theme-light .bg-white\/20 {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .bg-white\/30 {
+  background-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.theme-light .border-white\/10 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.theme-light .border-white\/20 {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.theme-light .border-white\/30 {
+  border-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+.theme-light .border-white\/40 {
+  border-color: rgba(0, 0, 0, 0.24) !important;
 }
 
 /* Respect users who prefer less motion (optional but nice) */

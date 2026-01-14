@@ -62,7 +62,7 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
 
   return (
     <div
-      className={`relative w-full h-full min-h-[460px] sm:min-h-[500px] rounded-[20px] overflow-hidden bg-[#1a1a1a] shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.1)_inset] isolate font-sans ${className}`}
+      className={`relative w-full h-full min-h-[460px] sm:min-h-[500px] rounded-[20px] overflow-hidden bg-[#03458e] shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.1)_inset] isolate font-sans ${className}`}
       style={{ ...style, ...cssVariables }}
     >
       <svg className="absolute w-0 h-0 pointer-events-none opacity-0" aria-hidden="true">
@@ -129,7 +129,7 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
           className="absolute top-0 left-0 w-full h-full z-0 opacity-90"
           style={{
             background:
-              'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 45%), radial-gradient(circle at 80% 10%, rgba(255,255,255,0.12), transparent 40%), linear-gradient(160deg, rgba(10,16,30,0.9), rgba(6,12,22,0.9))'
+              'var(--card-bg, radial-gradient(circle at 20% 20%, rgba(248,248,255,0.18), transparent 45%), radial-gradient(circle at 80% 10%, rgba(248,248,255,0.12), transparent 40%), linear-gradient(160deg, rgba(10,16,30,0.9), rgba(6,12,22,0.9)))'
           }}
           aria-hidden="true"
         />
@@ -137,9 +137,9 @@ const ReflectiveCard: React.FC<ReflectiveCardProps> = ({
 
       <div className="absolute inset-0 z-10 opacity-[var(--roughness,0.4)] pointer-events-none bg-[url('data:image/svg+xml,%3Csvg%20viewBox%3D%270%200%20200%20200%27%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%3E%3Cfilter%20id%3D%27noiseFilter%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.8%27%20numOctaves%3D%273%27%20stitchTiles%3D%27stitch%27%2F%3E%3C%2Ffilter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url(%23noiseFilter)%27%2F%3E%3C%2Fsvg%3E')] mix-blend-overlay" />
 
-      <div className="absolute inset-0 z-20 bg-[linear-gradient(135deg,rgba(255,255,255,0.4)_0%,rgba(255,255,255,0.1)_40%,rgba(255,255,255,0)_50%,rgba(255,255,255,0.1)_60%,rgba(255,255,255,0.3)_100%)] pointer-events-none mix-blend-overlay opacity-[var(--metalness,1)]" />
+      <div className="absolute inset-0 z-20 bg-[linear-gradient(135deg,rgba(248,248,255,0.4)_0%,rgba(248,248,255,0.1)_40%,rgba(248,248,255,0)_50%,rgba(248,248,255,0.1)_60%,rgba(248,248,255,0.3)_100%)] pointer-events-none mix-blend-overlay opacity-[var(--metalness,1)]" />
 
-      <div className="absolute inset-0 rounded-[20px] p-[1px] bg-[linear-gradient(135deg,rgba(255,255,255,0.15)_0%,rgba(255,255,255,0)_50%,rgba(255,255,255,0.15)_100%)] [mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] [mask-composite:exclude] z-20 pointer-events-none" />
+      <div className="absolute inset-0 rounded-[20px] p-[1px] bg-[linear-gradient(135deg,rgba(248,248,255,0.15)_0%,rgba(248,248,255,0)_50%,rgba(248,248,255,0.15)_100%)] [mask:linear-gradient(#fff_0_0)_content-box,linear-gradient(#fff_0_0)] [mask-composite:exclude] z-20 pointer-events-none" />
 
       <div className="relative z-10 h-full flex flex-col justify-between p-6 sm:p-8 text-[var(--text-color,white)] bg-[var(--overlay-color,rgba(255,255,255,0.05))]">
         <div className="flex justify-between items-center border-b border-white/20 pb-4">

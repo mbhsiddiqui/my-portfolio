@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import './App.css'
-import LightPillar from './components/LightPillar';
 import PillNav from './components/PillNav';
 import ReflectiveCard from './components/ReflectiveCard';
 import GlassSurface from './components/GlassSurface';
@@ -39,6 +38,17 @@ const SECTION_IDS = ['hero', 'skills', 'projects', 'resume'];
 function App() {
   const [activeHref, setActiveHref] = useState('#hero');
   const [navDim, setNavDim] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    let stored: string | null = null;
+    try {
+      stored = window.localStorage.getItem('theme');
+    } catch {
+      stored = null;
+    }
+    if (stored) return stored === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
   const emailAddress = 'maaz.haroon@gmail.com';
   const [emailCopied, setEmailCopied] = useState(false);
   const [emailCopiedTarget, setEmailCopiedTarget] = useState<'card' | 'footer' | null>(null);
@@ -60,6 +70,41 @@ function App() {
     } catch {
       // noop
     }
+  };
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.toggle('theme-dark', isDarkMode);
+    document.documentElement.classList.toggle('theme-light', !isDarkMode);
+  }, [isDarkMode]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = (event: MediaQueryListEvent) => {
+      let stored: string | null = null;
+      try {
+        stored = window.localStorage.getItem('theme');
+      } catch {
+        stored = null;
+      }
+      if (stored) return;
+      setIsDarkMode(event.matches);
+    };
+    media.addEventListener('change', handler);
+    return () => media.removeEventListener('change', handler);
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDarkMode(prev => {
+      const next = !prev;
+      try {
+        window.localStorage.setItem('theme', next ? 'dark' : 'light');
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -150,7 +195,6 @@ function App() {
   }, []);
 
   const navItems = [
-    { label: 'Home', href: '#hero' },
     { label: 'Skills', href: '#skills' },
     { label: 'Projects', href: '#projects' },
     { label: 'Resume', href: '#resume' }
@@ -305,23 +349,15 @@ function App() {
   return (
     <>
       {/* Background */}
-        <div className='lp-bg'>
-          <LightPillar
-          topColor="#ffffff"
-          bottomColor="#3a88fe"
-          glowAmount={0.001}
-          pillarRotation={60}
-          noiseIntensity={0.2}
-          intensity={0.5}
-          />
-        </div>
+        <div className="lp-bg lp-gradient" />
 
       {/* Page content */}
-      <ClickSpark>
+      <ClickSpark sparkColor={isDarkMode ? '#F8F8FF' : '#0E0D15'}>
         <main className="relative min-h-screen flex flex-col">
           <PillNav 
             items={navItems}
             logo={assets.personalLogo}
+            logoHref="#hero"
             initialLoadAnimation
             activeHref={activeHref}
             pillGap="12px"
@@ -331,16 +367,19 @@ function App() {
             pillTextColor="#f5f8ff"
             hoveredPillTextColor="#0b1220"
             onItemClick={handleNavClick}
+            onLogoClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            isDarkMode={isDarkMode}
+            onToggleTheme={toggleTheme}
           />
           <div className="relative z-10 px-6 md:px-10 pt-28 pb-16">
             <div className="mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[minmax(300px,380px)_1fr] gap-12 lg:gap-14">
               <aside
                 data-animate="fade-left"
-                className="fade-left lg:sticky lg:top-28 self-start flex justify-center lg:justify-start mb-12 lg:mb-0"
+                className="fade-left fade-mobile-up lg:sticky lg:top-28 self-start flex justify-center lg:justify-start mb-12 lg:mb-0"
               >
                 <div className="w-full h-[460px] sm:w-[320px] sm:h-[520px] md:w-[340px] md:h-[540px] lg:w-[360px] lg:h-[560px] xl:w-[380px] xl:h-[580px]">
                   <ReflectiveCard
-                    className="w-full h-full"
+                    className="w-full h-full reflective-card"
                     name="MAAZ"
                     title="SOFTWARE ENGINEER"
                     subtitle="FULL-STACK APPS"
@@ -348,7 +387,8 @@ function App() {
                     locationLabel="LOCATION"
                     locationValue="Toronto, ON"
                     avatarSrc={assets.faviconShadow}
-                    overlayColor="rgba(255,255,255,0.06)"
+                    overlayColor={isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(10,14,24,0.08)'}
+                    color={isDarkMode ? 'white' : '#0b1220'}
                     socials={(
                       <GlassIcons
                         items={socialItems}
@@ -373,7 +413,7 @@ function App() {
                             </p>
                           </div>
                           <h1 className="text-3xl md:text-5xl font-semibold leading-tight">
-                            Aspiring software engineer focused on full-stack web apps with thoughtful UX.
+                            Aspiring software engineer focused on full-stack apps with thoughtful UX.
                           </h1>
                           <p className="text-base md:text-lg text-white/70 max-w-2xl">
                             I build modern interfaces and reliable backends that ship fast and scale cleanly.
@@ -383,7 +423,7 @@ function App() {
                             <button
                               type="button"
                               onClick={() => handleNavClick({ href: '#projects' })}
-                              className="px-5 py-3 rounded-full bg-white/90 text-black font-medium cursor-pointer transition-all duration-300 hover:bg-white hover:-translate-y-0.5"
+                              className="px-5 py-3 rounded-full font-medium cursor-pointer transition-all duration-300 hover:-translate-y-0.5 hero-primary-btn"
                             >
                               View projects
                             </button>
@@ -487,7 +527,14 @@ function App() {
           </div>
 
         <footer id="footer" className="w-full mt-auto">
-          <GlassSurface width="100%" height="auto" borderRadius={0} backgroundOpacity={0.08} className="overflow-visible">
+          <GlassSurface
+            width="100%"
+            height="auto"
+            borderRadius={0}
+            backgroundOpacity={isDarkMode ? 0.04 : 0.26}
+            saturation={isDarkMode ? 0.9 : 0.8}
+            className="overflow-visible footer-glass"
+          >
             <div className="w-full h-full py-5 md:py-6">
               <div className="max-w-7xl mx-auto px-6 md:px-10 flex flex-col items-center gap-3 text-center">
                 <GlassIcons
