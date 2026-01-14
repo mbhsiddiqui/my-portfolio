@@ -63,6 +63,7 @@ const PillNav: React.FC<PillNavProps> = ({
   const mobileMenuRef = useRef<HTMLDivElement | null>(null);
   const navItemsRef = useRef<HTMLDivElement | null>(null);
   const logoRef = useRef<HTMLAnchorElement | HTMLElement | null>(null);
+  const hasAnimatedRef = useRef(false);
   const [isThemeAnimating, setIsThemeAnimating] = useState(false);
 
   useEffect(() => {
@@ -129,7 +130,7 @@ const PillNav: React.FC<PillNavProps> = ({
       gsap.set(menu, { visibility: 'hidden', opacity: 0, scaleY: 1, y: 0 });
     }
 
-    if (initialLoadAnimation) {
+    if (initialLoadAnimation && !hasAnimatedRef.current) {
       const logo = logoRef.current;
       const navItems = navItemsRef.current;
 
@@ -148,6 +149,8 @@ const PillNav: React.FC<PillNavProps> = ({
           { opacity: 1, y: 0, duration: 0.6, ease, delay: 0.05 }
         );
       }
+
+      hasAnimatedRef.current = true;
     }
 
     return () => window.removeEventListener('resize', onResize);
