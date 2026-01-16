@@ -49,33 +49,13 @@ const GlassIcons: React.FC<GlassIconsProps> = ({
 
   return (
     <div className={`grid ${gridClasses} overflow-visible`}>
-      {items.map((item, index) => (
-        <div
-          key={index}
-          aria-label={item.label}
-          role={item.href ? undefined : 'button'}
-          tabIndex={item.href ? -1 : 0}
-          onClick={item.onClick}
-          onKeyDown={event => {
-            if (!item.onClick) return;
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              item.onClick();
-            }
-          }}
-          className={`relative bg-transparent outline-none border-none cursor-pointer w-[3.6em] h-[3.6em] [perspective:24em] [transform-style:preserve-3d] [-webkit-tap-highlight-color:transparent] group ${
-            item.customClass || ''
-          } ${item.isActive ? 'ring-2 ring-white/50 ring-offset-2 ring-offset-black/40 rounded-[1.25em]' : ''}`}
-        >
-          {item.href ? (
-            <a
-              href={item.href}
-              aria-label={item.label}
-              target={item.target}
-              rel={item.rel}
-              className="absolute inset-0 z-[5]"
-            />
-          ) : null}
+      {items.map((item, index) => {
+        const baseClasses = `relative bg-transparent outline-none border-none cursor-pointer w-[3.6em] h-[3.6em] [perspective:24em] [transform-style:preserve-3d] [-webkit-tap-highlight-color:transparent] group ${
+          item.customClass || ''
+        } ${item.isActive ? 'ring-2 ring-white/50 ring-offset-2 ring-offset-black/40 rounded-[1.25em]' : ''}`;
+
+        const content = (
+          <>
           <span
             className="absolute top-0 left-0 w-full h-full rounded-[1.1em] block transition-[opacity,transform] duration-[420ms] ease-[cubic-bezier(0.83,0,0.17,1)] origin-[100%_100%] rotate-[12deg] [will-change:transform] group-hover:[transform:rotate(18deg)_translate3d(-0.35em,-0.35em,0.35em)]"
             style={{
@@ -111,8 +91,47 @@ const GlassIcons: React.FC<GlassIconsProps> = ({
           >
             {item.label}
           </span>
-        </div>
-      ))}
+          </>
+        );
+
+        if (item.href) {
+          return (
+            <a
+              key={index}
+              href={item.href}
+              aria-label={item.label}
+              target={item.target}
+              rel={item.rel}
+              className={baseClasses}
+              onClick={event => {
+                event.stopPropagation();
+              }}
+            >
+              {content}
+            </a>
+          );
+        }
+
+        return (
+          <div
+            key={index}
+            aria-label={item.label}
+            role="button"
+            tabIndex={0}
+            onClick={item.onClick}
+            onKeyDown={event => {
+              if (!item.onClick) return;
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                item.onClick();
+              }
+            }}
+            className={baseClasses}
+          >
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 };

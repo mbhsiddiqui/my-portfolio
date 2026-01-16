@@ -1,14 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
+import { gsap } from 'gsap'
 import './App.css'
 import PillNav from './components/PillNav';
 import ReflectiveCard from './components/ReflectiveCard';
 import GlassSurface from './components/GlassSurface';
 import GlassIcons from './components/GlassIcons';
-import ClickSpark from './components/ClickSpark';
 import assets from './assets/assets';
 import ProjectsSection from './Projects/ProjectsSection';
 import ExperienceSection from './Experience/ExperienceSection';
 import {
+  ArrowUp,
   Braces,
   BrainCircuit,
   Check,
@@ -38,6 +39,9 @@ const SECTION_IDS = ['hero', 'skills', 'projects', 'resume'];
 function App() {
   const [activeHref, setActiveHref] = useState('#hero');
   const [navDim, setNavDim] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [themeFadeActive, setThemeFadeActive] = useState(false);
+  const [themeFadeToDark, setThemeFadeToDark] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     if (typeof window === 'undefined') return true;
     let stored: string | null = null;
@@ -53,6 +57,8 @@ function App() {
   const [emailCopied, setEmailCopied] = useState(false);
   const [emailCopiedTarget, setEmailCopiedTarget] = useState<'card' | 'footer' | null>(null);
   const emailTimerRef = useRef<number | null>(null);
+  const themeTimerRef = useRef<number | null>(null);
+  const themeOverlayRef = useRef<number | null>(null);
 
   const handleCopyEmail = async (target: 'card' | 'footer') => {
     if (typeof navigator === 'undefined' || !navigator.clipboard) return;
@@ -79,6 +85,11 @@ function App() {
   }, [isDarkMode]);
 
   useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.add('perf-mode');
+  }, []);
+
+  useEffect(() => {
     if (typeof window === 'undefined') return;
     const media = window.matchMedia('(prefers-color-scheme: dark)');
     const handler = (event: MediaQueryListEvent) => {
@@ -96,46 +107,108 @@ function App() {
   }, []);
 
   const toggleTheme = () => {
-    setIsDarkMode(prev => {
-      const next = !prev;
+    const next = !isDarkMode;
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('theme-switching');
+      if (themeTimerRef.current) {
+        window.clearTimeout(themeTimerRef.current);
+      }
+      if (themeOverlayRef.current) {
+        window.clearTimeout(themeOverlayRef.current);
+      }
+      setThemeFadeToDark(next);
+      setThemeFadeActive(false);
+      requestAnimationFrame(() => setThemeFadeActive(true));
+      themeOverlayRef.current = window.setTimeout(() => {
+        setThemeFadeActive(false);
+        themeOverlayRef.current = null;
+      }, 800);
+      themeTimerRef.current = window.setTimeout(() => {
+        document.documentElement.classList.remove('theme-switching');
+        themeTimerRef.current = null;
+      }, 900);
+    }
+    window.setTimeout(() => {
       try {
         window.localStorage.setItem('theme', next ? 'dark' : 'light');
       } catch {
         // ignore storage errors
       }
-      return next;
-    });
+      setIsDarkMode(next);
+    }, 200);
   };
 
   useEffect(() => {
-    const elements = Array.from(document.querySelectorAll('[data-animate]'));
+    const elements = Array.from(document.querySelectorAll<HTMLElement>('[data-animate]'));
     if (!elements.length) return;
+
+    const isPhone = window.matchMedia('(max-width: 640px)').matches;
+    const isProjectsCollapsing = () =>
+      typeof document !== 'undefined' &&
+      document.documentElement.classList.contains('projects-collapsing');
+
+    const heroElements = elements.filter(el => el.closest('#hero'));
+    const otherElements = elements.filter(el => !el.closest('#hero'));
+
+    elements.forEach(el => {
+      const type = el.dataset.animate;
+      const forceMobileUp = isPhone && el.dataset.mobile === 'up';
+      if (type === 'fade-left' && !forceMobileUp) {
+        gsap.set(el, { opacity: 0, x: -24, y: 0 });
+      } else {
+        gsap.set(el, { opacity: 0, y: 24, x: 0 });
+      }
+    });
+
+    if (!isPhone && heroElements.length) {
+      gsap.to(heroElements, {
+        opacity: 1,
+        x: 0,
+        y: 0,
+        duration: 0.65,
+        ease: 'power2.out',
+        overwrite: 'auto'
+      });
+      heroElements.forEach(el => {
+        el.dataset.animated = 'true';
+      });
+    }
 
     const observer = new IntersectionObserver(
       entries => {
         entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-visible');
-            observer.unobserve(entry.target);
-          }
+          const target = entry.target as HTMLElement;
+          if (!entry.isIntersecting || target.dataset.animated === 'true') return;
+          const section = target.closest('section');
+          if (section?.id === 'resume' && isProjectsCollapsing()) return;
+
+          const ratio = entry.intersectionRect.height / Math.max(1, entry.boundingClientRect.height);
+          if (ratio < 0.3) return;
+
+          target.dataset.animated = 'true';
+          const type = target.dataset.animate;
+          const forceMobileUp = isPhone && target.dataset.mobile === 'up';
+          gsap.to(target, {
+            opacity: 1,
+            x: type === 'fade-left' && !forceMobileUp ? 0 : 0,
+            y: type === 'fade-left' && !forceMobileUp ? 0 : 0,
+            duration: 0.6,
+            ease: 'power2.out'
+          });
+          observer.unobserve(target);
         });
       },
-      { threshold: 0.05, rootMargin: '0px 0px -25% 0px' }
+      { threshold: [0, 0.3], rootMargin: '0px 0px -10% 0px' }
     );
 
-    const revealInView = () => {
-      elements.forEach(element => {
-        const rect = element.getBoundingClientRect();
-        if (rect.top < window.innerHeight * 0.9) {
-          element.classList.add('is-visible');
-        } else {
-          observer.observe(element);
-        }
-      });
-    };
+    otherElements.forEach(element => observer.observe(element));
+    if (isPhone) {
+      heroElements.forEach(element => observer.observe(element));
+    }
 
-    requestAnimationFrame(revealInView);
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+    };
   }, []);
 
   useEffect(() => {
@@ -175,21 +248,76 @@ function App() {
   }, []);
 
   useEffect(() => {
-    let timeoutId: number | null = null;
+    let ticking = false;
 
-    const handleScroll = () => {
-      setNavDim(true);
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
+    const updateVisibility = () => {
+      const hero = document.getElementById('hero');
+      const profileCard = document.querySelector('.reflective-card');
+      const isPhone = window.matchMedia('(max-width: 640px)').matches;
+
+      if (isPhone && profileCard instanceof HTMLElement) {
+        const rect = profileCard.getBoundingClientRect();
+        setShowScrollTop(rect.bottom < 0);
+        ticking = false;
+        return;
       }
-      timeoutId = window.setTimeout(() => setNavDim(false), 900);
+
+      if (!hero) {
+        setShowScrollTop(window.scrollY > 400);
+        ticking = false;
+        return;
+      }
+      const heroBottom = hero.offsetTop + hero.offsetHeight;
+      setShowScrollTop(window.scrollY > heroBottom - 120);
+      ticking = false;
     };
 
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(updateVisibility);
+    };
+
+    updateVisibility();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    let ticking = false;
+
+    const updateDim = () => {
+      setNavDim(window.scrollY > 20);
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(updateDim);
+    };
+
+    updateDim();
     window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('resize', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (timeoutId) {
-        window.clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (themeTimerRef.current) {
+        window.clearTimeout(themeTimerRef.current);
+      }
+      if (themeOverlayRef.current) {
+        window.clearTimeout(themeOverlayRef.current);
       }
     };
   }, []);
@@ -204,21 +332,23 @@ function App() {
     <span className="relative w-4 h-4 transform-gpu">
       <Mail
         size={14}
-        className={`absolute inset-0 transition-[opacity,transform] duration-[280ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[opacity,transform] ${
+        className={`absolute inset-0 transition-[opacity,transform] duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[opacity,transform] ${
           active ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
         } ${iconClass}`}
       />
       <Check
         size={14}
-        className={`absolute inset-0 transition-[opacity,transform] duration-[280ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[opacity,transform] ${
+        className={`absolute inset-0 transition-[opacity,transform] duration-[360ms] ease-[cubic-bezier(0.16,1,0.3,1)] will-change-[opacity,transform] ${
           active ? 'opacity-100 scale-100' : 'opacity-0 scale-95'
         } text-white`}
       />
-      {active ? (
-        <span className="absolute -top-8 left-1/2 -translate-x-1/2 rounded-full bg-black/80 text-white text-[10px] px-2 py-1 whitespace-nowrap">
-          Copied
-        </span>
-      ) : null}
+      <span
+        className={`email-tooltip absolute -top-8 left-1/2 -translate-x-1/2 rounded-full text-[10px] px-2 py-1 whitespace-nowrap ${
+          active ? 'email-tooltip--visible' : ''
+        }`}
+      >
+        Copied
+      </span>
     </span>
   );
 
@@ -236,7 +366,7 @@ function App() {
       color: 'rgba(255,255,255,0.12)',
       href: 'https://www.linkedin.com/in/mbhsiddiqui/',
       target: '_blank' as const,
-      rel: 'noreferrer',
+      rel: 'noopener noreferrer',
       customClass: 'w-[2.2em] h-[2.2em]'
     },
     {
@@ -256,7 +386,7 @@ function App() {
       color: 'rgba(255,255,255,0.2)',
       href: 'https://www.linkedin.com/in/mbhsiddiqui/',
       target: '_blank' as const,
-      rel: 'noreferrer',
+      rel: 'noopener noreferrer',
       customClass: 'w-[2.2em] h-[2.2em]'
     },
     {
@@ -346,38 +476,34 @@ function App() {
     window.scrollTo({ top: offsetTop, behavior: 'smooth' });
   };
 
-  return (
-    <>
-      {/* Background */}
-        <div className="lp-bg lp-gradient" />
-
-      {/* Page content */}
-      <ClickSpark sparkColor={isDarkMode ? '#F8F8FF' : '#0E0D15'}>
-        <main className="relative min-h-screen flex flex-col">
-          <PillNav 
-            items={navItems}
-            logo={assets.personalLogo}
-            logoHref="#hero"
-            initialLoadAnimation
-            activeHref={activeHref}
-            pillGap="12px"
-            dimmed={navDim}
-            baseColor="rgba(255,255,255,0.85)"
-            pillColor="rgba(10,14,24,0.8)"
-            pillTextColor="#f5f8ff"
-            hoveredPillTextColor="#0b1220"
-            onItemClick={handleNavClick}
-            onLogoClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            isDarkMode={isDarkMode}
-            onToggleTheme={toggleTheme}
-          />
+  const pageContent = (
+    <main className="relative min-h-screen flex flex-col">
+      <PillNav 
+        items={navItems}
+        logo={assets.personalLogo}
+        logoHref="#hero"
+        initialLoadAnimation
+        activeHref={activeHref}
+        pillGap="12px"
+        dimmed={navDim}
+        className={navDim ? 'pill-nav-dimmed' : ''}
+        baseColor="rgba(255,255,255,0.85)"
+        pillColor="rgba(10,14,24,0.8)"
+        pillTextColor="#f5f8ff"
+        hoveredPillTextColor="#0b1220"
+        onItemClick={handleNavClick}
+        onLogoClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        isDarkMode={isDarkMode}
+        onToggleTheme={toggleTheme}
+      />
           <div className="relative z-10 px-6 md:px-10 pt-28 pb-16">
-            <div className="mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[minmax(300px,380px)_1fr] gap-12 lg:gap-14">
+            <div className="mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[360px_1fr] xl:grid-cols-[380px_1fr] gap-12 lg:gap-14">
               <aside
                 data-animate="fade-left"
-                className="fade-left fade-mobile-up lg:sticky lg:top-28 self-start flex justify-center lg:justify-start mb-12 lg:mb-0"
+                data-mobile="up"
+                className="lg:sticky lg:top-28 self-start flex justify-center lg:justify-start mb-12 lg:mb-0 w-full sm:max-w-[320px] md:max-w-[340px] lg:w-[360px] lg:max-w-none xl:w-[380px] xl:max-w-none"
               >
-                <div className="w-full h-[460px] sm:w-[320px] sm:h-[520px] md:w-[340px] md:h-[540px] lg:w-[360px] lg:h-[560px] xl:w-[380px] xl:h-[580px]">
+                <div className="w-full h-[460px] sm:h-[520px] md:h-[540px] lg:h-[560px] xl:h-[580px]">
                   <ReflectiveCard
                     className="w-full h-full reflective-card"
                     name="MAAZ"
@@ -403,8 +529,14 @@ function App() {
               <div className="space-y-24">
                 <section id="hero" className="w-full">
                   <div className="grid gap-6">
-                    <div data-animate="fade-up" className="fade-up">
-                      <GlassSurface width="100%" height="auto" borderRadius={32} backgroundOpacity={0.08}>
+                    <div data-animate="fade-up">
+                      <GlassSurface
+                        width="100%"
+                        height="auto"
+                        borderRadius={32}
+                        backgroundOpacity={0.08}
+                        className="section-glass"
+                      >
                         <div className="w-full h-full p-6 md:p-8 text-left space-y-5">
                           <div className="flex items-center gap-3">
                             <img src={assets.faviconShadow} alt="Maaz favicon" className="w-9 h-9 rounded-full" />
@@ -439,7 +571,7 @@ function App() {
                       </GlassSurface>
                     </div>
                     <div className="grid md:grid-cols-2 gap-6">
-                      <div data-animate="fade-up" className="fade-up">
+                      <div data-animate="fade-up">
                         <GlassSurface width="100%" height="auto" borderRadius={28} backgroundOpacity={0.08}>
                           <div className="w-full h-full p-6 text-left space-y-3">
                             <p className="text-xs uppercase tracking-[0.3em] text-white/60">Focus</p>
@@ -450,7 +582,7 @@ function App() {
                           </div>
                         </GlassSurface>
                       </div>
-                      <div data-animate="fade-up" className="fade-up">
+                      <div data-animate="fade-up">
                         <GlassSurface width="100%" height="auto" borderRadius={28} backgroundOpacity={0.08}>
                           <div className="w-full h-full p-6 text-left space-y-3">
                             <p className="text-xs uppercase tracking-[0.3em] text-white/60">Currently</p>
@@ -466,8 +598,14 @@ function App() {
                 </section>
 
                 <section id="skills" className="w-full">
-                  <div data-animate="fade-up" className="fade-up">
-                    <GlassSurface width="100%" height="auto" borderRadius={32} backgroundOpacity={0.08}>
+                  <div data-animate="fade-up">
+                    <GlassSurface
+                      width="100%"
+                      height="auto"
+                      borderRadius={32}
+                      backgroundOpacity={0.08}
+                      className="section-glass"
+                    >
                       <div className="w-full h-full p-6 md:p-8 text-left space-y-8">
                         <div className="flex flex-wrap items-start justify-between gap-4">
                           <div>
@@ -551,8 +689,29 @@ function App() {
             </div>
           </GlassSurface>
         </footer>
-        </main>
-      </ClickSpark>
+    </main>
+  );
+
+  return (
+    <>
+      {/* Background */}
+        <div className="lp-bg lp-gradient" />
+
+      {/* Page content */}
+      {pageContent}
+      <div
+        className={`theme-fade-overlay ${themeFadeActive ? 'is-active' : ''}`}
+        style={{ ['--theme-fade-color' as string]: themeFadeToDark ? '#0E0D15' : '#F8F8FF' }}
+        aria-hidden="true"
+      />
+      <button
+        type="button"
+        aria-label="Scroll back to top"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={`scroll-top-btn ${showScrollTop ? 'is-visible' : ''}`}
+      >
+        <ArrowUp size={18} />
+      </button>
     </>
   )
 }

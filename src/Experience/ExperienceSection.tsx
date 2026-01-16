@@ -53,8 +53,14 @@ const workExperience: ExperienceItem[] = [
 const ExperienceSection: React.FC = () => {
   return (
     <section id="resume" className="w-full">
-      <div data-animate="fade-up" className="fade-up">
-        <GlassSurface width="100%" height="auto" borderRadius={32} backgroundOpacity={0.08}>
+      <div data-animate="fade-up">
+        <GlassSurface
+          width="100%"
+          height="auto"
+          borderRadius={32}
+          backgroundOpacity={0.08}
+          className="section-glass"
+        >
           <div className="w-full h-full p-6 md:p-8 text-left space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>

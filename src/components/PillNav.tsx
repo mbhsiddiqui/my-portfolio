@@ -54,6 +54,7 @@ const PillNav: React.FC<PillNavProps> = ({
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [menuReady, setMenuReady] = useState(false);
   const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const tlRefs = useRef<Array<gsap.core.Timeline | null>>([]);
   const activeTweenRefs = useRef<Array<gsap.core.Tween | null>>([]);
@@ -67,6 +68,7 @@ const PillNav: React.FC<PillNavProps> = ({
   const [isThemeAnimating, setIsThemeAnimating] = useState(false);
 
   useEffect(() => {
+    setMenuReady(true);
     const layout = () => {
       circleRefs.current.forEach(circle => {
         if (!circle?.parentElement) return;
@@ -127,7 +129,14 @@ const PillNav: React.FC<PillNavProps> = ({
 
     const menu = mobileMenuRef.current;
     if (menu) {
-      gsap.set(menu, { visibility: 'hidden', opacity: 0, scaleY: 1, y: 0 });
+      gsap.set(menu, {
+        visibility: 'hidden',
+        opacity: 0,
+        scale: 0.9,
+        x: 10,
+        y: -8,
+        transformOrigin: 'top right'
+      });
     }
 
     if (initialLoadAnimation && !hasAnimatedRef.current) {
@@ -205,17 +214,19 @@ const PillNav: React.FC<PillNavProps> = ({
     }
 
     if (menu) {
+      gsap.killTweensOf(menu);
       gsap.set(menu, { visibility: 'visible' });
       gsap.fromTo(
         menu,
-        { opacity: 0, y: 10, scaleY: 1 },
+        { opacity: 0, y: -8, x: 10, scale: 0.9 },
         {
           opacity: 1,
           y: 0,
-          scaleY: 1,
-          duration: 0.3,
+          x: 0,
+          scale: 1,
+          duration: 0.28,
           ease,
-          transformOrigin: 'top center'
+          transformOrigin: 'top right'
         }
       );
     }
@@ -237,15 +248,17 @@ const PillNav: React.FC<PillNavProps> = ({
     }
 
     if (menu) {
+      gsap.killTweensOf(menu);
       gsap.to(menu, {
         opacity: 0,
-        y: 10,
-        scaleY: 1,
+        y: -8,
+        x: 10,
+        scale: 0.9,
         duration: 0.2,
         ease,
-        transformOrigin: 'top center',
+        transformOrigin: 'top right',
         onComplete: () => {
-          gsap.set(menu, { visibility: 'hidden' });
+          gsap.set(menu, { visibility: 'hidden', opacity: 0, y: -8, x: 10, scale: 0.9 });
         }
       });
     }
@@ -595,106 +608,108 @@ const PillNav: React.FC<PillNavProps> = ({
         </button>
       </nav>
 
-      <div
-        ref={mobileMenuRef}
-        className="md:hidden absolute top-[calc(var(--nav-h)+0.05rem)] left-0 right-0 mx-auto w-[calc(100vw-120px)] max-w-[19rem] min-w-[180px] rounded-[22px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-[998] origin-top"
-        style={{
-          ...cssVars,
-          background: 'rgba(10,14,24,0.6)',
-          border: '1px solid rgba(255,255,255,0.35)',
-          backdropFilter: 'blur(16px) saturate(1.2)',
-          WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
-          visibility: isMobileMenuOpen ? 'visible' : 'hidden',
-          opacity: isMobileMenuOpen ? 1 : 0,
-          pointerEvents: isMobileMenuOpen ? 'auto' : 'none'
-        }}
-      >
-        <ul className="list-none m-0 p-[3px] flex flex-col gap-[3px]">
-          {items.map(item => {
-            const defaultStyle: React.CSSProperties = {
-              background: 'var(--pill-bg, #fff)',
-              color: 'var(--pill-text, #fff)'
-            };
-            const hoverIn = (e: React.MouseEvent<HTMLElement>) => {
-              e.currentTarget.style.background = 'var(--base)';
-              e.currentTarget.style.color = 'var(--hover-text, #fff)';
-            };
-            const hoverOut = (e: React.MouseEvent<HTMLElement>) => {
-              e.currentTarget.style.background = 'var(--pill-bg, #fff)';
-              e.currentTarget.style.color = 'var(--pill-text, #fff)';
-            };
+      {menuReady ? (
+        <div
+          ref={mobileMenuRef}
+          className={`mobile-menu md:hidden absolute top-[calc(var(--nav-h)+0.05rem)] right-4 left-auto w-[calc(100vw-120px)] max-w-[19rem] min-w-[180px] rounded-[22px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-[998] origin-top-right ${
+            isMobileMenuOpen ? 'is-open' : ''
+          }`}
+          style={{
+            ...cssVars,
+            background: 'rgba(10,14,24,0.6)',
+            border: '1px solid rgba(255,255,255,0.35)',
+            backdropFilter: 'blur(16px) saturate(1.2)',
+            WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+            pointerEvents: isMobileMenuOpen ? 'auto' : 'none'
+          }}
+        >
+          <ul className="list-none m-0 p-[3px] flex flex-col gap-[3px]">
+            {items.map(item => {
+              const defaultStyle: React.CSSProperties = {
+                background: 'var(--pill-bg, #fff)',
+                color: 'var(--pill-text, #fff)'
+              };
+              const hoverIn = (e: React.MouseEvent<HTMLElement>) => {
+                e.currentTarget.style.background = 'var(--base)';
+                e.currentTarget.style.color = 'var(--hover-text, #fff)';
+              };
+              const hoverOut = (e: React.MouseEvent<HTMLElement>) => {
+                e.currentTarget.style.background = 'var(--pill-bg, #fff)';
+                e.currentTarget.style.color = 'var(--pill-text, #fff)';
+              };
 
-            const linkClasses =
-              'block py-3 px-4 text-[16px] font-medium rounded-[50px] transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]';
+              const linkClasses =
+                'block py-3 px-5 w-full text-left text-[16px] font-medium rounded-[50px] transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)]';
 
-            return (
-              <li key={item.href}>
-                {isRouterLink(item.href) ? (
-                  <Link
-                    to={item.href}
-                    className={linkClasses}
-                    style={defaultStyle}
-                    onMouseEnter={hoverIn}
-                    onMouseLeave={hoverOut}
-                    onClick={() => closeMobileMenu()}
-                  >
-                    {item.label}
-                  </Link>
-                ) : isHashLink(item.href) && onItemClick ? (
-                  <button
-                    type="button"
-                    className={linkClasses}
-                    style={defaultStyle}
-                    onMouseEnter={hoverIn}
-                    onMouseLeave={hoverOut}
-                    onClick={() => {
-                      closeMobileMenu();
-                      onItemClick(item);
-                    }}
-                  >
-                    {item.label}
-                  </button>
-                ) : (
-                  <a
-                    href={item.href}
-                    className={linkClasses}
-                    style={defaultStyle}
-                    onMouseEnter={hoverIn}
-                    onMouseLeave={hoverOut}
-                    onClick={() => {
-                      closeMobileMenu();
-                    }}
-                  >
-                    {item.label}
-                  </a>
-                )}
+              return (
+                <li key={item.href}>
+                  {isRouterLink(item.href) ? (
+                    <Link
+                      to={item.href}
+                      className={linkClasses}
+                      style={defaultStyle}
+                      onMouseEnter={hoverIn}
+                      onMouseLeave={hoverOut}
+                      onClick={() => closeMobileMenu()}
+                    >
+                      {item.label}
+                    </Link>
+                  ) : isHashLink(item.href) && onItemClick ? (
+                    <button
+                      type="button"
+                      className={linkClasses}
+                      style={defaultStyle}
+                      onMouseEnter={hoverIn}
+                      onMouseLeave={hoverOut}
+                      onClick={() => {
+                        closeMobileMenu();
+                        onItemClick(item);
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ) : (
+                    <a
+                      href={item.href}
+                      className={linkClasses}
+                      style={defaultStyle}
+                      onMouseEnter={hoverIn}
+                      onMouseLeave={hoverOut}
+                      onClick={() => {
+                        closeMobileMenu();
+                      }}
+                    >
+                      {item.label}
+                    </a>
+                  )}
+                </li>
+              );
+            })}
+            {onToggleTheme ? (
+              <li>
+                <button
+                  type="button"
+                  className={`block py-3 px-4 text-[16px] font-medium rounded-[50px] transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)] w-full text-left flex items-center gap-3 theme-toggle ${
+                    isThemeAnimating ? 'theme-toggle-animating' : ''
+                  }`}
+                  style={{
+                    background: 'rgba(255,255,255,0.12)',
+                    color: 'var(--pill-text, #fff)',
+                    ['--toggle-rotate' as string]: isDarkMode ? '0deg' : '180deg'
+                  }}
+                  onClick={handleThemeToggle}
+                >
+                  <span className="theme-toggle-glyph">
+                    <Sun size={16} className="theme-toggle-icon theme-toggle-icon--sun" />
+                    <Moon size={16} className="theme-toggle-icon theme-toggle-icon--moon" />
+                  </span>
+                  <span>{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
+                </button>
               </li>
-            );
-          })}
-          {onToggleTheme ? (
-            <li>
-              <button
-                type="button"
-                className={`block py-3 px-4 text-[16px] font-medium rounded-[50px] transition-all duration-200 ease-[cubic-bezier(0.25,0.1,0.25,1)] w-full text-left flex items-center gap-3 theme-toggle ${
-                  isThemeAnimating ? 'theme-toggle-animating' : ''
-                }`}
-                style={{
-                  background: 'rgba(255,255,255,0.12)',
-                  color: 'var(--pill-text, #fff)',
-                  ['--toggle-rotate' as string]: isDarkMode ? '0deg' : '180deg'
-                }}
-                onClick={handleThemeToggle}
-              >
-                <span className="theme-toggle-glyph">
-                  <Sun size={16} className="theme-toggle-icon theme-toggle-icon--sun" />
-                  <Moon size={16} className="theme-toggle-icon theme-toggle-icon--moon" />
-                </span>
-                <span>{isDarkMode ? 'Light mode' : 'Dark mode'}</span>
-              </button>
-            </li>
-          ) : null}
-        </ul>
-      </div>
+            ) : null}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 };
