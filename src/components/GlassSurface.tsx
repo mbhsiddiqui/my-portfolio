@@ -103,7 +103,6 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   displace = 0,
   backgroundOpacity = 0,
   saturation = 1,
-  disableBorder = false,
   useSvgFilter = false,
   distortionScale = -180,
   redOffset = 0,
