@@ -50,6 +50,60 @@ const workExperience: ExperienceItem[] = [
   }
 ];
 
+const tagColors: Record<string, string> = {
+  'AWS': '#FF9900',
+  'Java': '#E76F00',
+  'Spring Boot': '#6DB33F',
+  'Jenkins': '#D24939',
+  'Splunk': '#2AA8F2',
+  'JUnit': '#25A0D8',
+  'Mocha': '#C69A6A',
+  'Agile': '#7C8DBA',
+  'Zoho HelpDesk': '#7C8DBA',
+  'SSO': '#2AA8F2',
+  'LMS': '#9AA3B2'
+};
+
+const hexToRgb = (hex: string) => {
+  const normalized = hex.replace('#', '');
+  const bigint = parseInt(normalized.length === 3
+    ? normalized.split('').map(ch => ch + ch).join('')
+    : normalized, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255
+  };
+};
+
+const getLuminance = (hex: string) => {
+  const { r, g, b } = hexToRgb(hex);
+  const toLinear = (v: number) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+};
+
+const getTagStyles = (label: string) => {
+  const color = tagColors[label];
+  const isLightTheme =
+    typeof document !== 'undefined' && document.documentElement.classList.contains('theme-light');
+  if (!color) {
+    return {
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      color: isLightTheme ? '#0E0D15' : 'rgba(248, 248, 255, 0.7)',
+      borderColor: 'rgba(255,255,255,0.16)'
+    };
+  }
+  const isLight = getLuminance(color) > 0.55;
+  return {
+    backgroundColor: `${color}22`,
+    color: isLightTheme ? '#0E0D15' : isLight ? '#0E0D15' : '#F8F8FF',
+    borderColor: `${color}66`
+  };
+};
+
 const ExperienceSection: React.FC = () => {
   return (
     <section id="resume" className="w-full">
@@ -107,7 +161,7 @@ const ExperienceSection: React.FC = () => {
                 {workExperience.map(role => (
                   <div
                     key={`${role.role}-${role.period}`}
-                    className="rounded-3xl border border-white/10 bg-white/5 p-6 space-y-4"
+                    className="experience-card rounded-3xl border border-white/10 bg-white/5 p-6 space-y-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <div>
@@ -130,8 +184,13 @@ const ExperienceSection: React.FC = () => {
                       {role.stack.map(item => (
                         <span
                           key={item}
-                          className="px-3 py-1 rounded-full text-xs bg-white/10 text-white/70"
+                          className="px-3 py-1 rounded-full text-xs border inline-flex items-center gap-2"
+                          style={getTagStyles(item)}
                         >
+                          <span
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: tagColors[item] ?? 'rgba(255,255,255,0.4)' }}
+                          />
                           {item}
                         </span>
                       ))}

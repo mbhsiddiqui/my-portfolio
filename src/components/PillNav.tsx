@@ -26,6 +26,7 @@ export interface PillNavProps {
   dimmed?: boolean;
   onItemClick?: (item: PillNavItem) => void;
   onMobileMenuClick?: () => void;
+  onMobileMenuToggle?: (open: boolean) => void;
   initialLoadAnimation?: boolean;
   isDarkMode?: boolean;
   onToggleTheme?: () => void;
@@ -48,13 +49,13 @@ const PillNav: React.FC<PillNavProps> = ({
   dimmed = false,
   onItemClick,
   onMobileMenuClick,
+  onMobileMenuToggle,
   initialLoadAnimation = true,
   isDarkMode = true,
   onToggleTheme
 }) => {
   const resolvedPillTextColor = pillTextColor ?? baseColor;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [menuReady, setMenuReady] = useState(false);
   const circleRefs = useRef<Array<HTMLSpanElement | null>>([]);
   const tlRefs = useRef<Array<gsap.core.Timeline | null>>([]);
   const activeTweenRefs = useRef<Array<gsap.core.Tween | null>>([]);
@@ -66,9 +67,9 @@ const PillNav: React.FC<PillNavProps> = ({
   const logoRef = useRef<HTMLAnchorElement | HTMLElement | null>(null);
   const hasAnimatedRef = useRef(false);
   const [isThemeAnimating, setIsThemeAnimating] = useState(false);
+  const menuOpenedAtRef = useRef(0);
 
   useEffect(() => {
-    setMenuReady(true);
     const layout = () => {
       circleRefs.current.forEach(circle => {
         if (!circle?.parentElement) return;
@@ -203,6 +204,11 @@ const PillNav: React.FC<PillNavProps> = ({
   const openMobileMenu = () => {
     if (isMobileMenuOpen) return;
     setIsMobileMenuOpen(true);
+    onMobileMenuToggle?.(true);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.add('menu-open');
+    }
+    menuOpenedAtRef.current = Date.now();
 
     const hamburger = hamburgerRef.current;
     const menu = mobileMenuRef.current;
@@ -216,6 +222,8 @@ const PillNav: React.FC<PillNavProps> = ({
     if (menu) {
       gsap.killTweensOf(menu);
       gsap.set(menu, { visibility: 'visible' });
+      menu.style.opacity = '1';
+      menu.style.transform = 'translate3d(0,0,0) scale(1)';
       gsap.fromTo(
         menu,
         { opacity: 0, y: -8, x: 10, scale: 0.9 },
@@ -237,6 +245,10 @@ const PillNav: React.FC<PillNavProps> = ({
   const closeMobileMenu = () => {
     if (!isMobileMenuOpen) return;
     setIsMobileMenuOpen(false);
+    onMobileMenuToggle?.(false);
+    if (typeof document !== 'undefined') {
+      document.documentElement.classList.remove('menu-open');
+    }
 
     const hamburger = hamburgerRef.current;
     const menu = mobileMenuRef.current;
@@ -300,6 +312,7 @@ const PillNav: React.FC<PillNavProps> = ({
     };
 
     const handleScroll = () => {
+      if (Date.now() - menuOpenedAtRef.current < 200) return;
       closeMobileMenu();
     };
 
@@ -310,6 +323,7 @@ const PillNav: React.FC<PillNavProps> = ({
 
       if (!menu || !target) return;
       if (menu.contains(target) || (hamburger && hamburger.contains(target))) return;
+      if (Date.now() - menuOpenedAtRef.current < 200) return;
       closeMobileMenu();
     };
 
@@ -324,6 +338,22 @@ const PillNav: React.FC<PillNavProps> = ({
       document.removeEventListener('touchmove', handleTouchMove, { capture: true });
       window.removeEventListener('scroll', handleScroll);
     };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
+    const menu = mobileMenuRef.current;
+    if (!menu) return;
+    if (isMobileMenuOpen) {
+      menu.style.visibility = 'visible';
+      menu.style.opacity = '1';
+      menu.style.transform = 'translate3d(0,0,0) scale(1)';
+      menu.style.pointerEvents = 'auto';
+    } else {
+      menu.style.visibility = 'hidden';
+      menu.style.opacity = '0';
+      menu.style.transform = 'translate3d(10px,-8px,0) scale(0.9)';
+      menu.style.pointerEvents = 'none';
+    }
   }, [isMobileMenuOpen]);
 
   const isExternalLink = (href: string) =>
@@ -598,31 +628,28 @@ const PillNav: React.FC<PillNavProps> = ({
           }}
         >
           <span
-          className="hamburger-line w-4 h-0.5 rounded origin-center transition-all duration-[10ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-            style={{ background: '#fff' }}
+            className="hamburger-line w-4 h-0.5 rounded origin-center transition-all duration-[10ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
           />
           <span
             className="hamburger-line w-4 h-0.5 rounded origin-center transition-all duration-[10ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-            style={{ background: '#fff' }}
           />
         </button>
       </nav>
 
-      {menuReady ? (
-        <div
-          ref={mobileMenuRef}
-          className={`mobile-menu md:hidden absolute top-[calc(var(--nav-h)+0.05rem)] right-4 left-auto w-[calc(100vw-120px)] max-w-[19rem] min-w-[180px] rounded-[22px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-[998] origin-top-right ${
-            isMobileMenuOpen ? 'is-open' : ''
-          }`}
-          style={{
-            ...cssVars,
-            background: 'rgba(10,14,24,0.6)',
-            border: '1px solid rgba(255,255,255,0.35)',
-            backdropFilter: 'blur(16px) saturate(1.2)',
-            WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
-            pointerEvents: isMobileMenuOpen ? 'auto' : 'none'
-          }}
-        >
+      <div
+        ref={mobileMenuRef}
+        className={`mobile-menu md:hidden absolute top-[calc(var(--nav-h)+0.05rem)] right-4 left-auto w-[calc(100vw-120px)] max-w-[19rem] min-w-[180px] rounded-[22px] shadow-[0_8px_32px_rgba(0,0,0,0.12)] z-[1050] origin-top-right ${
+          isMobileMenuOpen ? 'is-open' : ''
+        }`}
+        style={{
+          ...cssVars,
+          background: isDarkMode ? 'rgba(10,14,24,0.6)' : 'rgba(248,248,255,0.8)',
+          border: isDarkMode ? '1px solid rgba(255,255,255,0.35)' : '1px solid rgba(14,13,21,0.22)',
+          backdropFilter: 'blur(16px) saturate(1.2)',
+          WebkitBackdropFilter: 'blur(16px) saturate(1.2)',
+          pointerEvents: isMobileMenuOpen ? 'auto' : 'none'
+        }}
+      >
           <ul className="list-none m-0 p-[3px] flex flex-col gap-[3px]">
             {items.map(item => {
               const defaultStyle: React.CSSProperties = {
@@ -708,8 +735,7 @@ const PillNav: React.FC<PillNavProps> = ({
               </li>
             ) : null}
           </ul>
-        </div>
-      ) : null}
+      </div>
     </div>
   );
 };

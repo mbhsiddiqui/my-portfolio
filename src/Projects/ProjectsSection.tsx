@@ -45,6 +45,56 @@ const projects: Project[] = [
   }
 ];
 
+const tagColors: Record<string, string> = {
+  'Python': '#3776AB',
+  'React.js': '#2AA8F2',
+  'Tailwind CSS': '#38BDF8',
+  'MongoDB': '#47A248',
+  'Express.js': '#9AA3B2',
+  'Node.js': '#3C873A',
+  'Git': '#F05032'
+};
+
+const hexToRgb = (hex: string) => {
+  const normalized = hex.replace('#', '');
+  const bigint = parseInt(normalized.length === 3
+    ? normalized.split('').map(ch => ch + ch).join('')
+    : normalized, 16);
+  return {
+    r: (bigint >> 16) & 255,
+    g: (bigint >> 8) & 255,
+    b: bigint & 255
+  };
+};
+
+const getLuminance = (hex: string) => {
+  const { r, g, b } = hexToRgb(hex);
+  const toLinear = (v: number) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
+};
+
+const getTagStyles = (label: string) => {
+  const color = tagColors[label];
+  const isLightTheme =
+    typeof document !== 'undefined' && document.documentElement.classList.contains('theme-light');
+  if (!color) {
+    return {
+      backgroundColor: 'rgba(255,255,255,0.1)',
+      color: isLightTheme ? '#0E0D15' : 'rgba(248, 248, 255, 0.7)',
+      borderColor: 'rgba(255,255,255,0.16)'
+    };
+  }
+  const isLight = getLuminance(color) > 0.55;
+  return {
+    backgroundColor: `${color}22`,
+    color: isLightTheme ? '#0E0D15' : isLight ? '#0E0D15' : '#F8F8FF',
+    borderColor: `${color}66`
+  };
+};
+
 const ProjectsSection: React.FC = () => {
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -232,8 +282,13 @@ const ProjectsSection: React.FC = () => {
                     {project.tags.map(tag => (
                       <span
                         key={tag}
-                        className="px-3 py-1 rounded-full text-xs bg-white/10 text-white/70"
+                        className="px-3 py-1 rounded-full text-xs border inline-flex items-center gap-2"
+                        style={getTagStyles(tag)}
                       >
+                        <span
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: tagColors[tag] ?? 'rgba(255,255,255,0.4)' }}
+                        />
                         {tag}
                       </span>
                     ))}

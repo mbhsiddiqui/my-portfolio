@@ -39,6 +39,7 @@ const SECTION_IDS = ['hero', 'skills', 'projects', 'resume'];
 function App() {
   const [activeHref, setActiveHref] = useState('#hero');
   const [navDim, setNavDim] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [themeFadeActive, setThemeFadeActive] = useState(false);
   const [themeFadeToDark, setThemeFadeToDark] = useState(false);
@@ -182,8 +183,12 @@ function App() {
           const section = target.closest('section');
           if (section?.id === 'resume' && isProjectsCollapsing()) return;
 
+          const skipRatio = isPhone && section?.id === 'resume';
+          if (!skipRatio) {
           const ratio = entry.intersectionRect.height / Math.max(1, entry.boundingClientRect.height);
-          if (ratio < 0.3) return;
+          const threshold = section?.id === 'resume' && window.innerWidth <= 420 ? 0.15 : 0.3;
+          if (ratio < threshold) return;
+          }
 
           target.dataset.animated = 'true';
           const type = target.dataset.animate;
@@ -292,6 +297,11 @@ function App() {
     let ticking = false;
 
     const updateDim = () => {
+      if (isMobileMenuOpen) {
+        setNavDim(false);
+        ticking = false;
+        return;
+      }
       setNavDim(window.scrollY > 20);
       ticking = false;
     };
@@ -309,7 +319,7 @@ function App() {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', handleScroll);
     };
-  }, []);
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     return () => {
@@ -382,7 +392,7 @@ function App() {
   const footerSocialItems = [
     {
       label: 'LinkedIn',
-      icon: <Linkedin size={14} className="text-black/70" />,
+      icon: <Linkedin size={14} className="footer-icon" />,
       color: 'rgba(255,255,255,0.2)',
       href: 'https://www.linkedin.com/in/mbhsiddiqui/',
       target: '_blank' as const,
@@ -391,7 +401,7 @@ function App() {
     },
     {
       label: 'Email',
-      icon: buildEmailIcon(emailCopied && emailCopiedTarget === 'footer', 'text-black/70'),
+      icon: buildEmailIcon(emailCopied && emailCopiedTarget === 'footer', 'footer-icon'),
       color: emailCopied && emailCopiedTarget === 'footer' ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.2)',
       isActive: emailCopied && emailCopiedTarget === 'footer',
       onClick: () => handleCopyEmail('footer'),
@@ -403,44 +413,44 @@ function App() {
     {
       title: 'Languages',
       items: [
-        { label: 'JavaScript', icon: <Braces size={20} className="text-white/80" /> },
-        { label: 'Python', icon: <Code2 size={20} className="text-white/80" /> },
-        { label: 'Java', icon: <Coffee size={20} className="text-white/80" /> },
-        { label: 'C/C++', icon: <Cpu size={20} className="text-white/80" /> },
-        { label: 'Kotlin', icon: <Layers size={20} className="text-white/80" /> },
-        { label: 'C#', icon: <ShieldCheck size={20} className="text-white/80" /> }
+        { label: 'JavaScript', color: '#D4B400', icon: <Braces size={20} className="skill-icon" /> },
+        { label: 'Python', color: '#3776AB', icon: <Code2 size={20} className="skill-icon" /> },
+        { label: 'Java', color: '#E76F00', icon: <Coffee size={20} className="skill-icon" /> },
+        { label: 'C/C++', color: '#8FA0FF', icon: <Cpu size={20} className="skill-icon" /> },
+        { label: 'Kotlin', color: '#B18CFF', icon: <Layers size={20} className="skill-icon" /> },
+        { label: 'C#', color: '#C074E3', icon: <ShieldCheck size={20} className="skill-icon" /> }
       ]
     },
     {
       title: 'Frameworks',
       items: [
-        { label: 'React.js', icon: <Globe size={20} className="text-white/80" /> },
-        { label: 'Node.js', icon: <Server size={20} className="text-white/80" /> },
-        { label: 'Express.js', icon: <GitBranch size={20} className="text-white/80" /> },
-        { label: 'Angular', icon: <Monitor size={20} className="text-white/80" /> },
-        { label: 'Tailwind CSS', icon: <Layers size={20} className="text-white/80" /> },
-        { label: 'Spring Boot', icon: <ShieldCheck size={20} className="text-white/80" /> },
-        { label: 'Mocha', icon: <TestTube size={20} className="text-white/80" /> },
-        { label: 'JUnit', icon: <TestTube size={20} className="text-white/80" /> },
-        { label: 'TensorFlow', icon: <BrainCircuit size={20} className="text-white/80" /> },
-        { label: 'scikit-learn', icon: <Network size={20} className="text-white/80" /> },
-        { label: 'NumPy', icon: <Sigma size={20} className="text-white/80" /> },
-        { label: 'Pandas', icon: <LineChart size={20} className="text-white/80" /> },
-        { label: 'Maven', icon: <Wrench size={20} className="text-white/80" /> }
+        { label: 'React.js', color: '#3AB6FF', icon: <Globe size={20} className="skill-icon" /> },
+        { label: 'Node.js', color: '#3C873A', icon: <Server size={20} className="skill-icon" /> },
+        { label: 'Express.js', color: '#9AA3B2', icon: <GitBranch size={20} className="skill-icon" /> },
+        { label: 'Angular', color: '#DD1B16', icon: <Monitor size={20} className="skill-icon" /> },
+        { label: 'Tailwind CSS', color: '#38BDF8', icon: <Layers size={20} className="skill-icon" /> },
+        { label: 'Spring Boot', color: '#6DB33F', icon: <ShieldCheck size={20} className="skill-icon" /> },
+        { label: 'Mocha', color: '#C69A6A', icon: <TestTube size={20} className="skill-icon" /> },
+        { label: 'JUnit', color: '#25A0D8', icon: <TestTube size={20} className="skill-icon" /> },
+        { label: 'TensorFlow', color: '#FF6F00', icon: <BrainCircuit size={20} className="skill-icon" /> },
+        { label: 'scikit-learn', color: '#F7931E', icon: <Network size={20} className="skill-icon" /> },
+        { label: 'NumPy', color: '#4D77CF', icon: <Sigma size={20} className="skill-icon" /> },
+        { label: 'Pandas', color: '#8A6AD9', icon: <LineChart size={20} className="skill-icon" /> },
+        { label: 'Maven', color: '#E85A6B', icon: <Wrench size={20} className="skill-icon" /> }
       ]
     },
     {
       title: 'Tools & Platforms',
       items: [
-        { label: 'AWS', icon: <Cloud size={20} className="text-white/80" /> },
-        { label: 'Docker', icon: <Cpu size={20} className="text-white/80" /> },
-        { label: 'Jenkins', icon: <Wrench size={20} className="text-white/80" /> },
-        { label: 'Git', icon: <GitBranch size={20} className="text-white/80" /> },
-        { label: 'GitHub Actions', icon: <Github size={20} className="text-white/80" /> },
-        { label: 'Azure DevOps', icon: <Cloud size={20} className="text-white/80" /> },
-        { label: 'Kubernetes', icon: <Layers size={20} className="text-white/80" /> },
-        { label: 'MongoDB', icon: <Database size={20} className="text-white/80" /> },
-        { label: 'MySQL', icon: <Database size={20} className="text-white/80" /> }
+        { label: 'AWS', color: '#FF9900', icon: <Cloud size={20} className="skill-icon" /> },
+        { label: 'Docker', color: '#2496ED', icon: <Cpu size={20} className="skill-icon" /> },
+        { label: 'Jenkins', color: '#D24939', icon: <Wrench size={20} className="skill-icon" /> },
+        { label: 'Git', color: '#F05032', icon: <GitBranch size={20} className="skill-icon" /> },
+        { label: 'GitHub Actions', color: '#98A7B8', icon: <Github size={20} className="skill-icon" /> },
+        { label: 'Azure DevOps', color: '#0078D4', icon: <Cloud size={20} className="skill-icon" /> },
+        { label: 'Kubernetes', color: '#326CE5', icon: <Layers size={20} className="skill-icon" /> },
+        { label: 'MongoDB', color: '#47A248', icon: <Database size={20} className="skill-icon" /> },
+        { label: 'MySQL', color: '#00758F', icon: <Database size={20} className="skill-icon" /> }
       ]
     }
   ];
@@ -486,24 +496,25 @@ function App() {
         activeHref={activeHref}
         pillGap="12px"
         dimmed={navDim}
-        className={navDim ? 'pill-nav-dimmed' : ''}
-        baseColor="rgba(255,255,255,0.85)"
-        pillColor="rgba(10,14,24,0.8)"
-        pillTextColor="#f5f8ff"
-        hoveredPillTextColor="#0b1220"
+        className={navDim && !isMobileMenuOpen ? 'pill-nav-dimmed' : ''}
+        onMobileMenuToggle={setIsMobileMenuOpen}
+        baseColor={isDarkMode ? 'rgba(248,248,255,0.85)' : 'rgba(14,13,21,0.92)'}
+        pillColor={isDarkMode ? 'rgba(10,14,24,0.8)' : 'rgba(248,248,255,0.78)'}
+        pillTextColor={isDarkMode ? '#F8F8FF' : '#0E0D15'}
+        hoveredPillTextColor={isDarkMode ? '#0E0D15' : '#F8F8FF'}
         onItemClick={handleNavClick}
         onLogoClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         isDarkMode={isDarkMode}
         onToggleTheme={toggleTheme}
       />
           <div className="relative z-10 px-6 md:px-10 pt-28 pb-16">
-            <div className="mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[360px_1fr] xl:grid-cols-[380px_1fr] gap-12 lg:gap-14">
+            <div className="mx-auto w-full max-w-7xl md:grid md:grid-cols-[280px_1fr] lg:grid-cols-[320px_1fr] xl:grid-cols-[380px_1fr] gap-12 lg:gap-14">
               <aside
                 data-animate="fade-left"
                 data-mobile="up"
-                className="lg:sticky lg:top-28 self-start flex justify-center lg:justify-start mb-12 lg:mb-0 w-full sm:max-w-[320px] md:max-w-[340px] lg:w-[360px] lg:max-w-none xl:w-[380px] xl:max-w-none"
+                className="lg:sticky lg:top-28 self-start flex justify-center md:justify-start mb-12 md:mb-0 w-full sm:max-w-[320px] md:max-w-none md:w-[280px] lg:w-[320px] lg:max-w-none xl:w-[380px] xl:max-w-none"
               >
-                <div className="w-full h-[460px] sm:h-[520px] md:h-[540px] lg:h-[560px] xl:h-[580px]">
+                <div className="w-full h-[460px] sm:h-[520px] md:h-[520px] lg:h-[520px] xl:h-[580px]">
                   <ReflectiveCard
                     className="w-full h-full reflective-card"
                     name="MAAZ"
@@ -626,7 +637,10 @@ function App() {
                                     key={item.label}
                                     className="flex flex-col items-center gap-2 text-center"
                                   >
-                                    <span className="w-12 h-12 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center">
+                                    <span
+                                      className="w-12 h-12 rounded-2xl border border-white/10 bg-white/5 flex items-center justify-center skill-icon-wrap"
+                                      style={{ color: item.color }}
+                                    >
                                       {item.icon}
                                     </span>
                                     <span className="text-xs text-white/70">{item.label}</span>
